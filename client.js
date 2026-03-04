@@ -1,57 +1,92 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const nameInput = document.getElementById('nameTag');
 const status = document.getElementById('status');
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// WebSocket setup
-const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
+const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
 
 let myId = Math.random().toString(36).substring(7);
 let players = {};
-let myPos = { x: 100, y: 100 };
+let obstacles = [];
+let me = { x: 100, y: 100, vx: 0, vy: 0, name: "Guest" };
+const GRAVITY = 0.6;
+const JUMP_FORCE = -14;
+const SPEED = 6;
 
-socket.onopen = () => status.innerText = "Connected!";
-socket.onerror = () => status.innerText = "Error Connecting";
+nameInput.oninput = () => { me.name = nameInput.value || "Guest"; };
 
-socket.onmessage = (event) => {
-    players = JSON.parse(event.data);
-    draw();
+let keys = {};
+const setupBtn = (id, key) => {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+    el.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+};
+setupBtn('leftBtn', 'ArrowLeft');
+setupBtn('rightBtn', 'ArrowRight');
+setupBtn('jumpBtn', 'Space');
+
+socket.onopen = () => status.innerText = "Online";
+socket.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    players = data.players;
+    obstacles = data.obstacles;
 };
 
-function sendMove() {
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ id: myId, x: myPos.x, y: myPos.y }));
+function update() {
+    // Horizontal Movement
+    if (keys['ArrowLeft']) me.vx = -SPEED;
+    else if (keys['ArrowRight']) me.vx = SPEED;
+    else me.vx *= 0.8;
+
+    // Physics
+    me.vy += GRAVITY;
+    me.x += me.vx;
+    me.y += me.vy;
+
+    // Simple Floor
+    if (me.y > canvas.height - 60) {
+        me.y = canvas.height - 60;
+        me.vy = 0;
+        if (keys['Space']) me.vy = JUMP_FORCE;
     }
+
+    // Keep on screen
+    if (me.x < 0) me.x = 0;
+    if (me.x > canvas.width - 30) me.x = canvas.width - 30;
+
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ id: myId, x: me.x, y: me.y, name: me.name }));
+    }
+
+    draw();
+    requestAnimationFrame(update);
 }
-
-// Mobile Button Logic
-const move = (dx, dy) => {
-    myPos.x += dx;
-    myPos.y += dy;
-    sendMove();
-};
-
-document.getElementById('up').ontouchstart = () => move(0, -20);
-document.getElementById('down').ontouchstart = () => move(0, 20);
-document.getElementById('left').ontouchstart = () => move(-20, 0);
-document.getElementById('right').ontouchstart = () => move(20, 0);
-
-// Also support Keyboard
-window.onkeydown = (e) => {
-    if(e.key === "ArrowUp") move(0, -20);
-    if(e.key === "ArrowDown") move(0, 20);
-    if(e.key === "ArrowLeft") move(-20, 0);
-    if(e.key === "ArrowRight") move(20, 0);
-};
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Obstacles
+    ctx.fillStyle = "#ffcc00";
+    obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+    });
+
+    // Draw Players
     for (let id in players) {
-        ctx.fillStyle = id === myId ? '#4CAF50' : '#FF5252';
-        ctx.fillRect(players[id].x, players[id].y, 30, 30);
-        ctx.fillText(id === myId ? "You" : "Player", players[id].x, players[id].y - 5);
+        let p = players[id];
+        ctx.fillStyle = id === myId ? "#00ffcc" : "#ff4444";
+        ctx.beginPath();
+        ctx.roundRect(p.x, p.y, 30, 30, 5);
+        ctx.fill();
+
+        ctx.fillStyle = "white";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(p.name, p.x + 15, p.y - 10);
     }
 }
+update();
