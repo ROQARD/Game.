@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Multiplayer Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2D Multiplayer Game</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #222; }
-        canvas { display: block; }
+        body { margin: 0; background: #222; color: white; font-family: sans-serif; overflow: hidden; touch-action: none; }
+        canvas { display: block; background: #333; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; }
+        .controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+        .btn { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 10px; display: flex; align-items: center; justify-content: center; user-select: none; }
     </style>
 </head>
 <body>
+    <div id="ui">Status: <span id="status">Connecting...</span></div>
     <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+        <div class="btn" id="up">↑</div>
+        <div class="btn" id="left">←</div>
+        <div class="btn" id="down">↓</div>
+        <div class="btn" id="right">→</div>
+    </div>
+
     <script src="client.js"></script>
 </body>
 </html>
