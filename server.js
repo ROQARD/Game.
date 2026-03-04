@@ -1,42 +1,36 @@
 export default {
   players: {},
   obstacles: [
-    {x: 400, y: 500, w: 150, h: 20},
-    {x: 800, y: 400, w: 150, h: 20},
-    {x: 1200, y: 300, w: 150, h: 20}
+    {x: 0, y: 600, w: 2000, h: 50}, // Floor
+    {x: 400, y: 450, w: 200, h: 30},
+    {x: 800, y: 350, w: 200, h: 30}
   ],
-
   async fetch(request, env) {
     if (request.headers.get('Upgrade') === 'websocket') {
       const [client, server] = Object.values(new WebSocketPair());
       server.accept();
-
-      // Start Obstacle Loop if not started
-      if (!this.looping) {
-        this.looping = true;
+      
+      // Infinite Obstacle Loop
+      if (!this.started) {
+        this.started = true;
         setInterval(() => {
           this.obstacles.forEach(o => {
-            o.x -= 4; // Scroll speed
-            if (o.x < -200) {
-                o.x = 1200; // Reset to right
-                o.y = 200 + Math.random() * 300;
+            o.x -= 5; // The "Scroll" speed
+            if (o.x + o.w < 0) {
+              o.x = 1000 + Math.random() * 500;
+              o.y = 200 + Math.random() * 400;
             }
           });
-        }, 30);
+        }, 16);
       }
 
       server.addEventListener('message', (msg) => {
-        const data = JSON.parse(msg.data);
-        this.players[data.id] = { x: data.x, y: data.y, name: data.name };
-        
-        server.send(JSON.stringify({
-          players: this.players,
-          obstacles: this.obstacles
-        }));
+        const d = JSON.parse(msg.data);
+        this.players[d.id] = { x: d.x, y: d.y, name: d.name };
+        server.send(JSON.stringify({ players: this.players, obstacles: this.obstacles }));
       });
-
       return new Response(null, { status: 101, webSocket: client });
     }
-    return new Response("OK", { status: 200 });
+    return new Response("Server Active");
   }
 };
