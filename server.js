@@ -7,13 +7,13 @@ export default {
       const [client, server] = Object.values(new WebSocketPair());
       server.accept();
 
-      // Generate a vertical tower if it doesn't exist
       if (this.obstacles.length === 0) {
-          this.obstacles.push({x: 0, y: 500, w: 400, h: 50}); // Base
-          for(let i=1; i<100; i++) {
+          // Starting floor at Y=500
+          this.obstacles.push({x: 0, y: 500, w: 400, h: 40}); 
+          for(let i=1; i<200; i++) {
               this.obstacles.push({
-                  x: Math.random() * 300,
-                  y: 500 - (i * 150),
+                  x: Math.random() * 320,
+                  y: 500 - (i * 140), // Closer together for easier climbing
                   w: 80, h: 15
               });
           }
