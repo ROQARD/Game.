@@ -2,7 +2,6 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const nameInput = document.getElementById('nameTag');
 
-// Internal game resolution
 const GAME_W = 400;
 const GAME_H = window.innerHeight;
 canvas.width = GAME_W;
@@ -13,12 +12,14 @@ const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' :
 let myId = Math.random().toString(36).substring(7);
 let players = {};
 let obstacles = [];
-let me = { x: 180, y: GAME_H - 100, w: 30, h: 30, vx: 0, vy: 0, name: "Guest" };
-let maxY = me.y; // For camera tracking
+
+// SPAWN FIX: Place player high enough to be seen
+let me = { x: 180, y: 400, w: 30, h: 30, vx: 0, vy: 0, name: "Guest" };
+let maxY = me.y; 
 
 nameInput.onkeydown = (e) => {
     if (e.key === 'Enter' && nameInput.value) {
-        me.name = nameInput.value;
+        me.name = nameInput.value.toUpperCase();
         nameInput.disabled = true;
         nameInput.style.display = 'none';
     }
@@ -27,8 +28,8 @@ nameInput.onkeydown = (e) => {
 let keys = {};
 const bind = (id, k) => {
     const el = document.getElementById(id);
-    el.onpointerdown = (e) => { e.preventDefault(); keys[k] = true; };
-    el.onpointerup = (e) => { e.preventDefault(); keys[k] = false; };
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[k] = true; }, {passive: false});
+    el.addEventListener('touchend', (e) => { e.preventDefault(); keys[k] = false; }, {passive: false});
 };
 bind('lBtn', 'Left'); bind('rBtn', 'Right'); bind('jBtn', 'Space');
 
@@ -39,13 +40,12 @@ socket.onmessage = (e) => {
 };
 
 function update() {
-    me.vy += 0.7; // Gravity
-    if (keys['Left']) me.vx = -5;
-    else if (keys['Right']) me.vx = 5;
-    else me.vx *= 0.8;
+    me.vy += 0.7; 
+    if (keys['Left']) me.vx = -6;
+    else if (keys['Right']) me.vx = 6;
+    else me.vx *= 0.85;
 
     me.x += me.vx;
-    // Wall bounce
     if (me.x < 0) me.x = 0;
     if (me.x > GAME_W - me.w) me.x = GAME_W - me.w;
 
@@ -53,18 +53,22 @@ function update() {
     let grounded = false;
     obstacles.forEach(o => {
         if (me.x < o.x + o.w && me.x + me.w > o.x && me.y < o.y + o.h && me.y + me.h > o.y) {
-            if (me.vy > 0) { me.y = o.y - me.h; me.vy = 0; grounded = true; }
+            if (me.vy > 0 && me.y < o.y + (o.h / 2)) { 
+                me.y = o.y - me.h; 
+                me.vy = 0; 
+                grounded = true; 
+            }
         }
     });
 
-    if (grounded && keys['Space']) me.vy = -16;
+    if (grounded && keys['Space']) me.vy = -17;
     
-    // Update camera target (only goes up)
+    // Camera only moves up
     if (me.y < maxY) maxY = me.y;
 
-    // Death if fall below camera view
+    // Death/Respawn if you fall off camera
     if (me.y > maxY + GAME_H) {
-        me.y = maxY;
+        me.y = maxY - 100; // Reset player just above highest point reached
         me.vy = 0;
     }
 
@@ -78,15 +82,20 @@ function update() {
 
 function draw() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, GAME_W, GAME_H);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, GAME_W, GAME_H);
 
-    // Camera follow (Vertical)
-    const camOffset = (GAME_H * 0.6) - maxY;
+    // Camera
+    const camOffset = (GAME_H * 0.7) - maxY;
     ctx.translate(0, camOffset);
 
-    // Draw Obstacles
-    ctx.fillStyle = "#444";
-    obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+    // Draw Platforms
+    ctx.fillStyle = "#555";
+    obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.strokeStyle = "#0f0";
+        ctx.strokeRect(o.x, o.y, o.w, o.h);
+    });
 
     // Draw Players
     for (let id in players) {
@@ -94,7 +103,9 @@ function draw() {
         ctx.fillStyle = id === myId ? "#0f0" : "#f00";
         ctx.fillRect(p.x, p.y, 30, 30);
         ctx.fillStyle = "white";
-        ctx.fillText(p.name, p.x, p.y - 10);
+        ctx.font = "bold 14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(p.name, p.x + 15, p.y - 10);
     }
 }
 update();
