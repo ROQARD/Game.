@@ -3,61 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Team Climb: Zenith</title>
+    <title>30s Vertical Sprint</title>
     <style>
-        * { box-sizing: border-box; user-select: none; touch-action: none; font-family: system-ui, -apple-system, sans-serif; }
+        * { box-sizing: border-box; user-select: none; touch-action: none; font-family: system-ui, sans-serif; }
         body { margin: 0; background: #08080c; overflow: hidden; color: white; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 100;
         }
         #nameInput {
             padding: 15px; font-size: 24px; border: 3px solid #4CAF50;
-            background: #1a1a1a; color: white; text-align: center; border-radius: 15px; outline: none;
+            background: #1a1a1a; color: white; text-align: center; border-radius: 15px; margin-bottom: 20px;
         }
-        
+        #playBtn {
+            padding: 15px 50px; font-size: 28px; font-weight: bold; background: #4CAF50;
+            color: white; border: none; border-radius: 15px; cursor: pointer;
+        }
+
         #top-ui {
             position: fixed; top: 20px; width: 100%; display: flex; 
             flex-direction: column; align-items: center; pointer-events: none;
         }
-        #progress-wrapper { width: 70%; height: 16px; border-radius: 8px; background: #222; overflow: hidden; border: 1px solid #444; }
-        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #00E676); transition: 0.5s; }
+        #timer { font-size: 32px; font-weight: 900; color: #ff5252; margin-bottom: 10px; }
+        #progress-wrapper { width: 80%; height: 12px; background: #222; border-radius: 6px; position: relative; border: 1px solid #444; }
+        .player-marker { position: absolute; width: 12px; height: 12px; border-radius: 50%; top: -1px; transition: left 0.2s; border: 2px solid white; }
 
-        .controls { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; }
-        .btn { 
-            pointer-events: auto; width: 110px; height: 110px; 
-            background: rgba(255, 255, 255, 0.08); border: 4px solid #fff; border-radius: 25px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 32px; font-weight: 900;
-        }
-        .btn:active { background: #fff; color: #000; transform: scale(0.9); }
-        #jBtn { background: rgba(76, 175, 80, 0.2); border-color: #4CAF50; color: #4CAF50; }
-        #jBtn:active { background: #4CAF50; color: #fff; }
+        #leaderboard { position: fixed; top: 100px; right: 20px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; min-width: 150px; pointer-events: none; }
+        .rank-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .rank-1 { color: #ffd700; font-weight: bold; }
+
+        .controls { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; transition: opacity 0.3s; }
+        .keyboard-active .controls { opacity: 0; pointer-events: none; }
+        .btn { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border: 4px solid #fff; border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
     </style>
 </head>
 <body>
     <div id="overlay">
-        <h1 style="margin-bottom: 30px;">TEAM CLIMB</h1>
+        <h1 style="margin-bottom: 10px;">VERTICAL SPRINT</h1>
+        <p style="color: #888; margin-bottom: 30px;">Race to the top in 30 seconds!</p>
         <input type="text" id="nameInput" placeholder="Enter Name..." maxlength="12">
-        <p style="margin-top: 20px; color: #888;">Tap Enter to Join</p>
+        <button id="playBtn">PLAY</button>
     </div>
 
     <div id="top-ui">
-        <div style="font-weight: 700; margin-bottom: 10px; font-size: 14px; letter-spacing: 1px;">ALTITUDE PROGRESS</div>
-        <div id="progress-wrapper"><div id="progress-bar"></div></div>
+        <div id="timer">30.0</div>
+        <div id="progress-wrapper" id="markerContainer"></div>
     </div>
+
+    <div id="leaderboard"></div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div class="controls">
-        <div style="display:flex; gap:25px;">
+    <div class="controls" id="touchControls">
+        <div style="display:flex; gap:20px;">
             <div class="btn" id="lBtn">←</div>
             <div class="btn" id="rBtn">→</div>
         </div>
-        <div class="btn" id="jBtn">JUMP</div>
+        <div class="btn" id="jBtn" style="background: rgba(76,175,80,0.2); border-color:#4CAF50;">JUMP</div>
     </div>
 
     <script src="client.js"></script>
