@@ -1,8 +1,8 @@
 export default {
   players: {},
   platforms: [],
-  hazards: [],
-  goalY: -6000,
+  switches: [{x: 100, y: -1800, w: 100, h: 20}],
+  gateOpen: false,
 
   async fetch(request, env) {
     if (request.headers.get('Upgrade') === 'websocket') {
@@ -10,35 +10,42 @@ export default {
       server.accept();
 
       if (this.platforms.length === 0) {
-          // Starting Floor (Lowered)
-          this.platforms.push({x: -1000, y: 800, w: 3000, h: 100});
-          
-          // Generate Challenge Levels
-          for(let i=1; i<50; i++) {
-              let y = 800 - (i * 140);
-              // Safe Platforms
-              this.platforms.push({ x: Math.random() * 800, y: y, w: 120, h: 20 });
-              
-              // Add Hazards every few levels
-              if(i > 10 && i % 4 === 0) {
-                  this.hazards.push({ x: 0, y: y - 50, w: 2000, h: 5 }); // Crossing Lasers
-              }
+          this.platforms.push({x: -500, y: 800, w: 2000, h: 100});
+          for(let i=1; i<60; i++) {
+              this.platforms.push({
+                  x: (Math.random() * 800),
+                  y: 800 - (i * 160),
+                  w: 140, h: 25
+              });
           }
       }
 
       server.addEventListener('message', (msg) => {
         const d = JSON.parse(msg.data);
         this.players[d.id] = { x: d.x, y: d.y, name: d.name };
+        
+        // CHECK SWITCHES
+        this.gateOpen = false;
+        for (let pid in this.players) {
+            let p = this.players[pid];
+            this.switches.forEach(s => {
+                if (p.x < s.x + s.w && p.x + 35 > s.x && p.y < s.y + s.h && p.y + 35 > s.y) {
+                    this.gateOpen = true;
+                }
+            });
+        }
+
         server.send(JSON.stringify({ 
             players: this.players, 
-            platforms: this.platforms, 
-            hazards: this.hazards,
-            goalY: this.goalY 
+            platforms: this.platforms,
+            switches: this.switches,
+            gateOpen: this.gateOpen,
+            goalY: -8000 
         }));
       });
 
       return new Response(null, { status: 101, webSocket: client });
     }
-    return new Response("Co-op Server Online");
+    return new Response("Team Brain Active");
   }
 };
