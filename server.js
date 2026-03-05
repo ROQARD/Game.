@@ -8,13 +8,13 @@ export default {
       server.accept();
 
       if (this.obstacles.length === 0) {
-          // Starting floor at Y=500
-          this.obstacles.push({x: 0, y: 500, w: 400, h: 40}); 
-          for(let i=1; i<200; i++) {
+          // Wider base floor for fullscreen
+          this.obstacles.push({x: -500, y: 600, w: 3000, h: 50}); 
+          for(let i=1; i<300; i++) {
               this.obstacles.push({
-                  x: Math.random() * 320,
-                  y: 500 - (i * 140), // Closer together for easier climbing
-                  w: 80, h: 15
+                  x: (Math.random() * 2000) - 500, // Spread platforms out
+                  y: 600 - (i * 150),
+                  w: 120, h: 20
               });
           }
       }
@@ -27,6 +27,6 @@ export default {
 
       return new Response(null, { status: 101, webSocket: client });
     }
-    return new Response("Climber Server Active");
+    return new Response("Wide Server Active");
   }
 };
