@@ -3,66 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>30s Vertical Sprint</title>
+    <title>Vertical Sprint: 200m Dash</title>
     <style>
-        * { box-sizing: border-box; user-select: none; touch-action: none; font-family: system-ui, sans-serif; }
-        body { margin: 0; background: #08080c; overflow: hidden; color: white; }
+        * { box-sizing: border-box; user-select: none; touch-action: none; font-family: system-ui, -apple-system, sans-serif; }
+        body { margin: 0; background: #050508; overflow: hidden; color: white; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
-        #overlay {
+        /* Overlays */
+        .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 100;
         }
         #nameInput {
             padding: 15px; font-size: 24px; border: 3px solid #4CAF50;
-            background: #1a1a1a; color: white; text-align: center; border-radius: 15px; margin-bottom: 20px;
+            background: #111; color: white; text-align: center; border-radius: 15px; margin-bottom: 20px; outline: none;
         }
-        #playBtn {
-            padding: 15px 50px; font-size: 28px; font-weight: bold; background: #4CAF50;
-            color: white; border: none; border-radius: 15px; cursor: pointer;
+        .btn-main {
+            padding: 15px 60px; font-size: 28px; font-weight: 800; background: #4CAF50;
+            color: white; border: none; border-radius: 15px; cursor: pointer; transition: 0.2s;
         }
+        .btn-main:active { transform: scale(0.95); opacity: 0.8; }
 
+        /* UI Elements */
         #top-ui {
             position: fixed; top: 20px; width: 100%; display: flex; 
             flex-direction: column; align-items: center; pointer-events: none;
         }
-        #timer { font-size: 32px; font-weight: 900; color: #ff5252; margin-bottom: 10px; }
-        #progress-wrapper { width: 80%; height: 12px; background: #222; border-radius: 6px; position: relative; border: 1px solid #444; }
-        .player-marker { position: absolute; width: 12px; height: 12px; border-radius: 50%; top: -1px; transition: left 0.2s; border: 2px solid white; }
+        #timer { font-size: 36px; font-weight: 900; color: #ff5252; text-shadow: 0 0 15px rgba(255,82,82,0.5); }
+        #progress-wrapper { 
+            width: 85%; height: 14px; background: #1a1a1a; border-radius: 7px; 
+            position: relative; border: 1px solid #333; margin-top: 10px;
+        }
+        .player-marker { 
+            position: absolute; width: 14px; height: 14px; border-radius: 50%; 
+            top: -1px; transition: left 0.3s cubic-bezier(0.2, 0, 0, 1); border: 2px solid white; 
+        }
 
-        #leaderboard { position: fixed; top: 100px; right: 20px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; min-width: 150px; pointer-events: none; }
-        .rank-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
-        .rank-1 { color: #ffd700; font-weight: bold; }
+        #leaderboard { 
+            position: fixed; top: 120px; right: 20px; background: rgba(0,0,0,0.6); 
+            padding: 15px; border-radius: 12px; min-width: 180px; pointer-events: none; border: 1px solid #222;
+        }
+        .rank-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; font-weight: 500; }
+        .rank-1 { color: #ffd700; font-weight: 800; }
 
-        .controls { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; transition: opacity 0.3s; }
-        .keyboard-active .controls { opacity: 0; pointer-events: none; }
-        .btn { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border: 4px solid #fff; border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        /* Controls */
+        #touchControls { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; }
+        .kb-active #touchControls { display: none; }
+        .btn-ctrl { 
+            width: 110px; height: 110px; background: rgba(255,255,255,0.05); 
+            border: 4px solid #fff; border-radius: 30px; display: flex; 
+            align-items: center; justify-content: center; font-size: 35px; font-weight: bold;
+        }
+        #jBtn { border-color: #4CAF50; color: #4CAF50; background: rgba(76,175,80,0.1); }
     </style>
 </head>
-<body>
-    <div id="overlay">
-        <h1 style="margin-bottom: 10px;">VERTICAL SPRINT</h1>
-        <p style="color: #888; margin-bottom: 30px;">Race to the top in 30 seconds!</p>
-        <input type="text" id="nameInput" placeholder="Enter Name..." maxlength="12">
-        <button id="playBtn">PLAY</button>
+<body id="gameBody">
+    <div id="homeOverlay" class="overlay">
+        <h1 style="font-size: 48px; margin-bottom: 10px;">VERTICAL SPRINT</h1>
+        <p style="color: #666; margin-bottom: 40px;">Race to 200m in 30 Seconds</p>
+        <input type="text" id="nameInput" placeholder="YOUR NAME" maxlength="12">
+        <button id="playBtn" class="btn-main">PLAY</button>
+    </div>
+
+    <div id="resultOverlay" class="overlay" style="display: none;">
+        <h2 style="color: #ffd700; font-size: 32px;">ROUND OVER!</h2>
+        <h1 id="winnerName" style="font-size: 50px; margin: 10px 0;">---</h1>
+        <p id="winnerScore" style="font-size: 24px; opacity: 0.8;">0m climbed</p>
+        <p style="margin-top: 30px; color: #4CAF50;">Next round starting soon...</p>
     </div>
 
     <div id="top-ui">
         <div id="timer">30.0</div>
-        <div id="progress-wrapper" id="markerContainer"></div>
+        <div id="progress-wrapper"></div>
     </div>
 
     <div id="leaderboard"></div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div class="controls" id="touchControls">
-        <div style="display:flex; gap:20px;">
-            <div class="btn" id="lBtn">←</div>
-            <div class="btn" id="rBtn">→</div>
+    <div id="touchControls">
+        <div style="display:flex; gap:25px;">
+            <div class="btn-ctrl" id="lBtn">←</div>
+            <div class="btn-ctrl" id="rBtn">→</div>
         </div>
-        <div class="btn" id="jBtn" style="background: rgba(76,175,80,0.2); border-color:#4CAF50;">JUMP</div>
+        <div class="btn-ctrl" id="jBtn">JUMP</div>
     </div>
 
     <script src="client.js"></script>
