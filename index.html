@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Team Climb: Operation Zenith</title>
+    <title>Team Climb: Zenith</title>
     <style>
-        * { box-sizing: border-box; user-select: none; touch-action: none; }
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+        /* "Normal" modern fonts */
+        * { box-sizing: border-box; user-select: none; touch-action: none; font-family: system-ui, -apple-system, sans-serif; }
+        body { margin: 0; background: #0a0a10; overflow: hidden; color: white; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
         #overlay {
@@ -15,41 +16,45 @@
             align-items: center; justify-content: center; z-index: 100;
         }
         #nameInput {
-            padding: 15px; font-size: 20px; border: 2px solid #0f0;
-            background: #111; color: #0f0; text-align: center; outline: none;
+            padding: 15px; font-size: 24px; border: 2px solid #4CAF50;
+            background: #222; color: white; text-align: center; border-radius: 12px;
         }
         
         #top-ui {
-            position: fixed; top: 10px; width: 100%; display: flex; 
+            position: fixed; top: 20px; width: 100%; display: flex; 
             flex-direction: column; align-items: center; pointer-events: none;
         }
-        #progress-wrapper { width: 60%; height: 10px; border: 1px solid #fff; background: #222; }
-        #progress-bar { width: 0%; height: 100%; background: #0f0; transition: 0.3s; }
+        #progress-wrapper { width: 70%; height: 14px; border-radius: 7px; background: #333; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: 0.5s; }
 
-        .controls { position: fixed; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; }
+        /* Bigger, better buttons */
+        .controls { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; }
         .btn { 
-            pointer-events: auto; width: 80px; height: 80px; 
-            background: rgba(0, 255, 0, 0.1); border: 2px solid #0f0; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; color: #0f0; font-weight: bold;
+            pointer-events: auto; width: 100px; height: 100px; 
+            background: rgba(255, 255, 255, 0.1); border: 4px solid #fff; border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 28px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
+        .btn:active { background: #fff; color: #000; }
+        #jBtn { background: rgba(76, 175, 80, 0.3); border-color: #4CAF50; }
     </style>
 </head>
 <body>
     <div id="overlay">
-        <h1 style="color: #0f0;">CORE ACCESS REQUIRED</h1>
-        <input type="text" id="nameInput" placeholder="ENTER CODENAME..." maxlength="10">
-        <p style="color: #555; margin-top: 20px;">PRESS ENTER TO DEPLOY</p>
+        <h1>Welcome Back</h1>
+        <input type="text" id="nameInput" placeholder="Enter Name..." maxlength="12">
+        <p style="opacity: 0.6;">Press Enter to Join the Server</p>
     </div>
 
     <div id="top-ui">
-        <div style="color: #fff; margin-bottom: 5px; font-size: 12px;">GLOBAL ALTITUDE PROGRESS</div>
+        <div style="font-weight: bold; margin-bottom: 8px;">TEAM ASCENSION PROGRESS</div>
         <div id="progress-wrapper"><div id="progress-bar"></div></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <div class="controls">
-        <div style="display:flex; gap:15px;">
+        <div style="display:flex; gap:20px;">
             <div class="btn" id="lBtn">←</div>
             <div class="btn" id="rBtn">→</div>
         </div>
