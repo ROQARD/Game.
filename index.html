@@ -7,26 +7,37 @@
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: none; }
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; display: flex; justify-content: center; }
-        /* The game is locked to 400px width but full height */
-        canvas { background: #111; border-left: 2px solid #333; border-right: 2px solid #333; max-width: 400px; width: 100vw; height: 100vh; }
+        canvas { background: #111; border-left: 2px solid #333; border-right: 2px solid #333; max-width: 400px; width: 100vw; height: 100vh; display: block; }
         #ui { position: absolute; top: 10px; z-index: 10; pointer-events: none; width: 100%; max-width: 400px; padding: 10px; }
-        input { pointer-events: auto; background: #222; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 100%; border-radius: 5px; }
-        .controls { position: absolute; bottom: 30px; width: 100%; max-width: 400px; display: flex; justify-content: space-between; padding: 0 20px; }
-        .btn { width: 75px; height: 75px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        input { pointer-events: auto; background: #222; border: 1px solid #0f0; color: #0f0; padding: 12px; width: 100%; border-radius: 5px; outline: none; }
+        .controls { position: absolute; bottom: 50px; width: 100%; max-width: 400px; display: flex; justify-content: space-between; padding: 0 25px; pointer-events: none; }
+        .btn { 
+            pointer-events: auto; width: 85px; height: 85px; 
+            background: rgba(255,255,255,0.1); border: 3px solid #fff; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; font-weight: bold; font-size: 20px;
+        }
     </style>
 </head>
 <body>
     <div id="ui">
-        <input type="text" id="nameTag" placeholder="Enter Name & Press Enter">
+        <input type="text" id="nameTag" placeholder="TYPE NAME & PRESS ENTER">
     </div>
     <canvas id="gameCanvas"></canvas>
     <div class="controls">
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:15px;">
             <div class="btn" id="lBtn">←</div>
             <div class="btn" id="rBtn">→</div>
         </div>
         <div class="btn" id="jBtn">JUMP</div>
     </div>
+    <script>
+        // Extreme anti-zoom measure
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('dblclick', (e) => e.preventDefault());
+    </script>
     <script src="client.js"></script>
 </body>
 </html>
