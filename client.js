@@ -2,24 +2,25 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const nameInput = document.getElementById('nameTag');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// Internal game resolution
+const GAME_W = 400;
+const GAME_H = window.innerHeight;
+canvas.width = GAME_W;
+canvas.height = GAME_H;
 
 const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
 
 let myId = Math.random().toString(36).substring(7);
 let players = {};
 let obstacles = [];
-let me = { x: 300, y: 300, w: 40, h: 40, vx: 0, vy: 0, name: "Guest" };
-let nameLocked = false;
+let me = { x: 180, y: GAME_H - 100, w: 30, h: 30, vx: 0, vy: 0, name: "Guest" };
+let maxY = me.y; // For camera tracking
 
-// Lock name on Enter
 nameInput.onkeydown = (e) => {
-    if (e.key === 'Enter') {
-        me.name = nameInput.value || "Player";
+    if (e.key === 'Enter' && nameInput.value) {
+        me.name = nameInput.value;
         nameInput.disabled = true;
-        nameLocked = true;
-        nameInput.style.opacity = "0.5";
+        nameInput.style.display = 'none';
     }
 };
 
@@ -37,38 +38,35 @@ socket.onmessage = (e) => {
     obstacles = data.obstacles;
 };
 
-function checkCollision(a, b) {
-    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
 function update() {
-    // Gravity & Movement
-    me.vy += 0.8;
-    if (keys['Left']) me.vx = -6;
-    else if (keys['Right']) me.vx = 6;
+    me.vy += 0.7; // Gravity
+    if (keys['Left']) me.vx = -5;
+    else if (keys['Right']) me.vx = 5;
     else me.vx *= 0.8;
 
-    // Collision X
     me.x += me.vx;
-    obstacles.forEach(o => {
-        if (checkCollision(me, o)) {
-            if (me.vx > 0) me.x = o.x - me.w;
-            if (me.vx < 0) me.x = o.x + o.w;
-        }
-    });
+    // Wall bounce
+    if (me.x < 0) me.x = 0;
+    if (me.x > GAME_W - me.w) me.x = GAME_W - me.w;
 
-    // Collision Y
     me.y += me.vy;
     let grounded = false;
     obstacles.forEach(o => {
-        if (checkCollision(me, o)) {
+        if (me.x < o.x + o.w && me.x + me.w > o.x && me.y < o.y + o.h && me.y + me.h > o.y) {
             if (me.vy > 0) { me.y = o.y - me.h; me.vy = 0; grounded = true; }
-            else if (me.vy < 0) { me.y = o.y + o.h; me.vy = 0; }
         }
     });
 
     if (grounded && keys['Space']) me.vy = -16;
-    if (me.x < -50) { me.x = 300; me.y = 300; } // Respawn
+    
+    // Update camera target (only goes up)
+    if (me.y < maxY) maxY = me.y;
+
+    // Death if fall below camera view
+    if (me.y > maxY + GAME_H) {
+        me.y = maxY;
+        me.vy = 0;
+    }
 
     if (socket.readyState === 1) {
         socket.send(JSON.stringify({ id: myId, x: me.x, y: me.y, name: me.name }));
@@ -79,28 +77,23 @@ function update() {
 }
 
 function draw() {
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset
-    ctx.fillStyle = '#111';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, GAME_W, GAME_H);
 
-    // CAMERA LOGIC: Centering on Y axis
-    const camY = canvas.height / 2 - me.y;
-    ctx.translate(0, camY);
+    // Camera follow (Vertical)
+    const camOffset = (GAME_H * 0.6) - maxY;
+    ctx.translate(0, camOffset);
 
-    // Draw World
+    // Draw Obstacles
     ctx.fillStyle = "#444";
-    obstacles.forEach(o => {
-        ctx.fillRect(o.x, o.y, o.w, o.h);
-        ctx.strokeStyle = "#0f0";
-        ctx.strokeRect(o.x, o.y, o.w, o.h);
-    });
+    obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
+    // Draw Players
     for (let id in players) {
         let p = players[id];
         ctx.fillStyle = id === myId ? "#0f0" : "#f00";
-        ctx.fillRect(p.x, p.y, me.w, me.h);
+        ctx.fillRect(p.x, p.y, 30, 30);
         ctx.fillStyle = "white";
-        ctx.font = "bold 16px sans-serif";
         ctx.fillText(p.name, p.x, p.y - 10);
     }
 }
