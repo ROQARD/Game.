@@ -1,6 +1,5 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const debug = document.getElementById('debug');
 const nameInput = document.getElementById('nameTag');
 
 canvas.width = window.innerWidth;
@@ -11,16 +10,24 @@ const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' :
 let myId = Math.random().toString(36).substring(7);
 let players = {};
 let obstacles = [];
-let me = { x: 200, y: 100, w: 30, h: 30, vx: 0, vy: 0, name: "Player" };
-const GRAVITY = 0.8;
+let me = { x: 300, y: 300, w: 40, h: 40, vx: 0, vy: 0, name: "Guest" };
+let nameLocked = false;
 
-nameInput.oninput = () => me.name = nameInput.value || "Player";
+// Lock name on Enter
+nameInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+        me.name = nameInput.value || "Player";
+        nameInput.disabled = true;
+        nameLocked = true;
+        nameInput.style.opacity = "0.5";
+    }
+};
 
 let keys = {};
 const bind = (id, k) => {
     const el = document.getElementById(id);
     el.onpointerdown = (e) => { e.preventDefault(); keys[k] = true; };
-    el.onpointerup = () => keys[k] = false;
+    el.onpointerup = (e) => { e.preventDefault(); keys[k] = false; };
 };
 bind('lBtn', 'Left'); bind('rBtn', 'Right'); bind('jBtn', 'Space');
 
@@ -28,23 +35,20 @@ socket.onmessage = (e) => {
     const data = JSON.parse(e.data);
     players = data.players;
     obstacles = data.obstacles;
-    debug.innerText = "Online - Players: " + Object.keys(players).length;
 };
 
-function checkCollision(obj1, obj2) {
-    return obj1.x < obj2.x + obj2.w && obj1.x + obj1.w > obj2.x &&
-           obj1.y < obj2.y + obj2.h && obj1.y + obj1.h > obj2.y;
+function checkCollision(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
 function update() {
-    // Movement
-    if (keys['Left']) me.vx = -5;
-    else if (keys['Right']) me.vx = 5;
+    // Gravity & Movement
+    me.vy += 0.8;
+    if (keys['Left']) me.vx = -6;
+    else if (keys['Right']) me.vx = 6;
     else me.vx *= 0.8;
 
-    me.vy += GRAVITY;
-    
-    // Move X and check collision
+    // Collision X
     me.x += me.vx;
     obstacles.forEach(o => {
         if (checkCollision(me, o)) {
@@ -53,27 +57,18 @@ function update() {
         }
     });
 
-    // Move Y and check collision
+    // Collision Y
     me.y += me.vy;
-    let onGround = false;
+    let grounded = false;
     obstacles.forEach(o => {
         if (checkCollision(me, o)) {
-            if (me.vy > 0) {
-                me.y = o.y - me.h;
-                me.vy = 0;
-                onGround = true;
-            }
-            if (me.vy < 0) {
-                me.y = o.y + o.h;
-                me.vy = 0;
-            }
+            if (me.vy > 0) { me.y = o.y - me.h; me.vy = 0; grounded = true; }
+            else if (me.vy < 0) { me.y = o.y + o.h; me.vy = 0; }
         }
     });
 
-    if (onGround && keys['Space']) me.vy = -16;
-
-    // Death: If pushed off screen
-    if (me.x < -40) { me.x = 200; me.y = 100; }
+    if (grounded && keys['Space']) me.vy = -16;
+    if (me.x < -50) { me.x = 300; me.y = 300; } // Respawn
 
     if (socket.readyState === 1) {
         socket.send(JSON.stringify({ id: myId, x: me.x, y: me.y, name: me.name }));
@@ -84,22 +79,28 @@ function update() {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Obstacles
-    ctx.fillStyle = "#555";
+    // CAMERA LOGIC: Centering on Y axis
+    const camY = canvas.height / 2 - me.y;
+    ctx.translate(0, camY);
+
+    // Draw World
+    ctx.fillStyle = "#444";
     obstacles.forEach(o => {
         ctx.fillRect(o.x, o.y, o.w, o.h);
-        ctx.strokeStyle = "#fff";
+        ctx.strokeStyle = "#0f0";
         ctx.strokeRect(o.x, o.y, o.w, o.h);
     });
 
-    // Draw Players
     for (let id in players) {
         let p = players[id];
         ctx.fillStyle = id === myId ? "#0f0" : "#f00";
-        ctx.fillRect(p.x, p.y, 30, 30);
-        ctx.fillStyle = "#fff";
+        ctx.fillRect(p.x, p.y, me.w, me.h);
+        ctx.fillStyle = "white";
+        ctx.font = "bold 16px sans-serif";
         ctx.fillText(p.name, p.x, p.y - 10);
     }
 }
