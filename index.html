@@ -3,47 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Full Window Multiplayer Climber</title>
+    <title>Team Climb: Operation Zenith</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: none; }
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; background: #111; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+        canvas { display: block; width: 100vw; height: 100vh; }
         
-        /* Forced Name Overlay */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            background: #000; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 100;
         }
         #nameInput {
-            padding: 15px; font-size: 20px; border-radius: 10px; border: 2px solid #0f0;
-            background: #222; color: #0f0; text-align: center; outline: none; margin-bottom: 20px;
+            padding: 15px; font-size: 20px; border: 2px solid #0f0;
+            background: #111; color: #0f0; text-align: center; outline: none;
         }
-        #startBtn {
-            padding: 10px 30px; font-size: 18px; background: #0f0; color: #000;
-            border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
+        
+        #top-ui {
+            position: fixed; top: 10px; width: 100%; display: flex; 
+            flex-direction: column; align-items: center; pointer-events: none;
         }
+        #progress-wrapper { width: 60%; height: 10px; border: 1px solid #fff; background: #222; }
+        #progress-bar { width: 0%; height: 100%; background: #0f0; transition: 0.3s; }
 
-        .controls { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; pointer-events: none; }
+        .controls { position: fixed; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; }
         .btn { 
-            pointer-events: auto; width: 90px; height: 90px; 
-            background: rgba(255,255,255,0.1); border: 3px solid #fff; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: bold; font-size: 20px;
+            pointer-events: auto; width: 80px; height: 80px; 
+            background: rgba(0, 255, 0, 0.1); border: 2px solid #0f0; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; color: #0f0; font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div id="overlay">
-        <h2 style="color: white;">ENTER YOUR NAME</h2>
-        <input type="text" id="nameInput" placeholder="USERNAME..." maxlength="12">
-        <button id="startBtn">START GAME</button>
+        <h1 style="color: #0f0;">CORE ACCESS REQUIRED</h1>
+        <input type="text" id="nameInput" placeholder="ENTER CODENAME..." maxlength="10">
+        <p style="color: #555; margin-top: 20px;">PRESS ENTER TO DEPLOY</p>
+    </div>
+
+    <div id="top-ui">
+        <div style="color: #fff; margin-bottom: 5px; font-size: 12px;">GLOBAL ALTITUDE PROGRESS</div>
+        <div id="progress-wrapper"><div id="progress-bar"></div></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <div class="controls">
-        <div style="display:flex; gap:20px;">
+        <div style="display:flex; gap:15px;">
             <div class="btn" id="lBtn">←</div>
             <div class="btn" id="rBtn">→</div>
         </div>
