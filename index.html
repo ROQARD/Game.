@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hardcore Multi-Runner</title>
+    <title>Hardcore Runner</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: none; }
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; background: #1a1a1a; }
-        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; z-index: 10; }
-        input { pointer-events: auto; background: rgba(0,0,0,0.5); border: 1px solid #0f0; color: #0f0; padding: 5px; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #ui { position: absolute; top: 10px; left: 10px; z-index: 10; width: 100%; pointer-events: none; }
+        input { pointer-events: auto; background: #222; border: 1px solid #0f0; color: #0f0; padding: 10px; border-radius: 5px; }
         .controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; }
-        .side { display: flex; gap: 10px; }
-        .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        .btn:active { background: #fff; color: #000; }
+        .btn { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 3px solid #fff; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; }
+        .btn:active { background: rgba(255,255,255,0.5); }
     </style>
 </head>
 <body>
     <div id="ui">
-        <input type="text" id="nameTag" placeholder="Enter Name..." maxlength="10">
-        <div id="debug" style="color: #0f0; font-size: 12px;">Connecting...</div>
+        <input type="text" id="nameTag" placeholder="Type name & press Enter">
     </div>
     <canvas id="gameCanvas"></canvas>
     <div class="controls">
-        <div class="side">
-            <div class="btn" id="lBtn">←</div>
-            <div class="btn" id="rBtn">→</div>
+        <div style="display:flex; gap:10px;">
+            <div class="btn" id="lBtn">LEFT</div>
+            <div class="btn" id="rBtn">RIGHT</div>
         </div>
-        <div class="side">
-            <div class="btn" id="jBtn">JUMP</div>
-        </div>
+        <div class="btn" id="jBtn">JUMP</div>
     </div>
     <script src="client.js"></script>
 </body>
